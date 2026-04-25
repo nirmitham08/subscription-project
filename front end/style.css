@@ -1,0 +1,41 @@
+body {
+    font-family: Arial;
+    margin: 20px;
+}
+
+button {
+    margin-left: 10px;
+}
+
+/* 🔥 Budget UI */
+.budget {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.over {
+    background-color: #ffcccc;
+    color: red;
+}
+
+.safe {
+    background-color: #ccffcc;
+    color: green;
+}
+
+/* 🔥 Recommendation cards */
+.card {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 10px;
+}
+
+.cancel {
+    background-color: #f8d7da;
+}
+
+.keep {
+    background-color: #d4edda;
+}
