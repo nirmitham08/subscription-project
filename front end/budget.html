@@ -1,0 +1,18 @@
+<h2>Set Monthly Budget</h2>
+<input id="budget" placeholder="Enter budget"><br><br>
+<button onclick="saveBudget()">Save</button>
+
+<script>
+async function saveBudget() {
+    const budget = document.getElementById("budget").value;
+    const user_id = localStorage.getItem("user_id");
+
+    await fetch("http://localhost:5000/budget", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({user_id, monthly_limit: budget})
+    });
+
+    window.location.href = "index.html";
+}
+</script>

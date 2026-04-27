@@ -1,6 +1,16 @@
 const API = "http://localhost:5000";
+const user_id = localStorage.getItem("user_id");
 
-// ---------------- LOAD SERVICES ----------------
+// LOGIN CHECK
+if (!user_id) window.location.href = "login.html";
+
+// LOGOUT
+function logout() {
+    localStorage.removeItem("user_id");
+    window.location.href = "login.html";
+}
+
+// LOAD SERVICES
 async function loadServices() {
     const res = await fetch(API + "/services");
     const data = await res.json();
@@ -8,117 +18,112 @@ async function loadServices() {
     const select = document.getElementById("service");
     if (!select) return;
 
-    select.innerHTML = '<option value="">Select Service</option>';
+    select.innerHTML = "";
 
-    data.forEach(service => {
-        const option = document.createElement("option");
-        option.value = service.service_id;
-        option.textContent = service.service_name;
-        select.appendChild(option);
+    data.forEach(s => {
+        let opt = document.createElement("option");
+        opt.value = s.service_id;
+        opt.textContent = s.service_name;
+        select.appendChild(opt);
     });
 }
 
-// ---------------- ADD ----------------
-async function addSubscription() {
-    const serviceId = document.getElementById("service").value;
-
-    if (!serviceId) {
-        alert("Select service");
-        return;
-    }
+// ADD SUB
+async function addSub() {
+    const service_id = document.getElementById("service").value;
 
     await fetch(API + "/subscriptions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ service_id: serviceId })
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({user_id, service_id})
     });
 
     window.location.href = "index.html";
 }
 
-// ---------------- LOAD SUBSCRIPTIONS ----------------
-async function loadSubscriptions() {
-    const res = await fetch(API + "/subscriptions");
+// LOAD SUBS
+async function loadSubs() {
+    const res = await fetch(API + "/subscriptions/" + user_id);
     const data = await res.json();
 
     const list = document.getElementById("list");
-    const total = document.getElementById("total");
-
     if (!list) return;
 
     list.innerHTML = "";
 
-    let sum = 0;
+    let total = 0;
 
-    data.forEach(sub => {
-        sum += Number(sub.monthly_cost);
+    data.forEach(s => {
+        const price = s.custom_price ? s.custom_price : s.monthly_cost;
+        total += Number(price);
 
-        const div = document.createElement("div");
+        let div = document.createElement("div");
+
         div.innerHTML = `
-            <b>${sub.service_name}</b> (${sub.category}) - ₹${sub.monthly_cost}
-            <button onclick="deleteSub(${sub.subscription_id})">Delete</button>
+            <b>${s.service_name}</b> - ₹${price}
+            <input id="p${s.subscription_id}" placeholder="Change price">
+            <button onclick="updatePrice(${s.subscription_id})">Update</button>
+            <button onclick="del(${s.subscription_id})">Delete</button>
         `;
+
         list.appendChild(div);
     });
 
-    total.innerText = sum;
-
-    loadBudget();
-    loadRecommendations();
+    document.getElementById("total").innerText = total;
+    checkBudget(total);
 }
 
-// ---------------- DELETE ----------------
-async function deleteSub(id) {
-    await fetch(API + "/subscriptions/" + id, {
-        method: "DELETE"
+// UPDATE PRICE
+async function updatePrice(id) {
+    const val = document.getElementById("p" + id).value;
+
+    await fetch(API + "/update-price", {
+        method: "PUT",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({subscription_id: id, price: val})
     });
 
-    loadSubscriptions();
+    loadSubs();
 }
 
-// ---------------- 💰 LOAD BUDGET ----------------
-async function loadBudget() {
-    const res = await fetch(API + "/budget");
+// DELETE
+async function del(id) {
+    await fetch(API + "/subscriptions/" + id, {method:"DELETE"});
+    loadSubs();
+}
+
+// SAVE BUDGET
+async function saveBudget() {
+    const val = document.getElementById("budget").value;
+
+    await fetch(API + "/budget", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({user_id, monthly_limit: val})
+    });
+
+    alert("Saved");
+}
+
+// CHECK BUDGET
+async function checkBudget(total) {
+    const res = await fetch(API + "/budget/" + user_id);
     const data = await res.json();
 
-    const box = document.getElementById("budgetBox");
+    if (data.length === 0) return;
 
-    if (data.total > data.monthly_limit) {
-        box.className = "budget over";
-        box.innerText = `⚠️ Over Budget! Limit: ₹${data.monthly_limit}`;
+    const limit = data[0].monthly_limit;
+
+    const warn = document.getElementById("warning");
+
+    if (total > limit) {
+        warn.innerHTML = "⚠️ Budget Exceeded!";
+        warn.style.color = "red";
     } else {
-        box.className = "budget safe";
-        box.innerText = `✅ Within Budget (Limit: ₹${data.monthly_limit})`;
+        warn.innerHTML = "✅ Within Budget";
+        warn.style.color = "green";
     }
 }
 
-// ---------------- 📊 LOAD RECOMMENDATIONS ----------------
-async function loadRecommendations() {
-    const res = await fetch(API + "/recommendations");
-    const data = await res.json();
-
-    const container = document.getElementById("recommendations");
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    data.forEach(item => {
-        const div = document.createElement("div");
-
-        div.className = item.recommendation.includes("Cancel") ? "card cancel" : "card keep";
-
-        div.innerHTML = `
-            <b>${item.service_name}</b><br>
-            Usage: ${item.total_usage} hrs<br>
-            👉 ${item.recommendation}
-        `;
-
-        container.appendChild(div);
-    });
-}
-
-// ---------------- AUTO LOAD ----------------
-window.onload = () => {
-    loadServices();
-    loadSubscriptions();
-};
+// AUTO LOAD
+window.onload = loadSubs;

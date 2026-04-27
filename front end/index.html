@@ -1,29 +1,22 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>My Subscriptions</title>
-    <link rel="stylesheet" href="style.css">
-</head>
 <body>
 
 <h1>My Subscriptions</h1>
 
-<button onclick="window.location.href='add.html'">Add Subscription</button>
+<button onclick="window.location.href='add.html'">Add</button>
 
-<h3>Total Monthly Cost: ₹<span id="total">0</span></h3>
+<br><br>
 
-<!-- 🔥 BUDGET STATUS -->
-<div id="budgetBox" class="budget"></div>
+<input id="budget" placeholder="Enter Monthly Budget">
+<button onclick="saveBudget()">Save Budget</button>
 
-<hr>
+<h3>Total Cost: ₹<span id="total">0</span></h3>
+<h3 id="warning"></h3>
 
 <div id="list"></div>
 
-<hr>
-
-<h2>📊 Recommendations</h2>
-<div id="recommendations"></div>
-
 <script src="script.js"></script>
+
 </body>
 </html>

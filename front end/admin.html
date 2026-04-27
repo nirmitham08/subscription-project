@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>All Users</h1>
+
+<div id="users"></div>
+
+<script>
+const API = "http://localhost:5000";
+
+async function loadUsers() {
+    const res = await fetch(API + "/all-users");
+    const data = await res.json();
+
+    const div = document.getElementById("users");
+
+    let currentUser = null;
+    let html = "";
+
+    data.forEach(row => {
+
+        if (currentUser !== row.user_id) {
+            if (currentUser !== null) html += "<hr>";
+
+            html += `<h3>${row.name} (${row.email})</h3>`;
+            currentUser = row.user_id;
+        }
+
+        if (row.service_name) {
+            html += `<p>• ${row.service_name} - ₹${row.price}</p>`;
+        } else {
+            html += `<p>No subscriptions</p>`;
+        }
+    });
+
+    div.innerHTML = html;
+}
+
+loadUsers();
+</script>
+
+</body>
+</html>
