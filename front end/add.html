@@ -1,24 +1,170 @@
 <!DOCTYPE html>
 <html>
+
+<head>
+
+    <title>Add Subscription</title>
+
+    <style>
+
+        body{
+            background:#111827;
+            color:white;
+            font-family:Arial;
+            padding:30px;
+        }
+
+        select{
+
+            padding:12px;
+            border:none;
+            border-radius:8px;
+            width:300px;
+        }
+
+        button{
+
+            padding:12px 20px;
+            border:none;
+            border-radius:8px;
+            background:#2563eb;
+            color:white;
+            cursor:pointer;
+            margin-top:15px;
+        }
+
+        a{
+            color:white;
+            text-decoration:none;
+        }
+
+        .card{
+
+            background:#1f2937;
+            padding:25px;
+            border-radius:15px;
+            width:400px;
+        }
+
+    </style>
+
+</head>
+
 <body>
+
+<div class="card">
 
 <h1>Add Subscription</h1>
 
-<select id="service"></select>
+<select id="service">
+
+<option>
+
+Loading...
+
+</option>
+
+</select>
+
+<br>
+
+<button onclick="addSubscription()">
+
+Add
+
+</button>
 
 <br><br>
 
-<button onclick="addSub()">Add</button>
+<a href="index.html">
 
-<br><br>
+⬅ Back
 
-<a href="index.html">Back</a>
+</a>
 
-<script src="script.js"></script>
+</div>
 
 <script>
-window.onload = loadServices;
+
+const API = "http://localhost:5000";
+
+const user = JSON.parse(
+localStorage.getItem("user")
+);
+
+// LOAD SERVICES
+async function loadServices(){
+
+const res = await fetch(
+API + "/services"
+);
+
+const data = await res.json();
+
+const select =
+document.getElementById("service");
+
+select.innerHTML = "";
+
+data.forEach(service => {
+
+select.innerHTML += `
+
+<option value="${service.service_id}">
+
+${service.service_name}
+- ₹${service.monthly_cost}
+
+</option>
+
+`;
+
+});
+
+}
+
+// ADD SUBSCRIPTION
+async function addSubscription(){
+
+const service_id =
+document.getElementById("service").value;
+
+const res = await fetch(
+
+API + "/subscriptions",
+
+{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+user_id:user.user_id,
+service_id
+
+})
+
+}
+
+);
+
+const msg = await res.text();
+
+alert(msg);
+
+window.location.href =
+"index.html";
+
+}
+
+loadServices();
+
 </script>
 
 </body>
+
 </html>

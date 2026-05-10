@@ -1,44 +1,142 @@
 <!DOCTYPE html>
 <html>
+
+<head>
+
+    <title>Admin Portal</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background:#111827;
+            color:white;
+            padding:20px;
+        }
+
+        .userBtn{
+
+            padding:12px;
+            margin:10px;
+            border:none;
+            border-radius:10px;
+            background:#2563eb;
+            color:white;
+            cursor:pointer;
+        }
+
+        .card{
+
+            background:#1f2937;
+            padding:20px;
+            margin-top:15px;
+            border-radius:12px;
+        }
+
+        .low{
+            color:red;
+        }
+
+        .good{
+            color:lightgreen;
+        }
+
+    </style>
+
+</head>
+
 <body>
 
-<h1>All Users</h1>
+<h1>👨‍💼 Admin Portal</h1>
+
+<h2>Users</h2>
 
 <div id="users"></div>
 
+<hr>
+
+<h2>User Usage Analytics</h2>
+
+<div id="usage"></div>
+
 <script>
+
 const API = "http://localhost:5000";
 
-async function loadUsers() {
+// LOAD USERS
+async function loadUsers(){
+
     const res = await fetch(API + "/all-users");
+
     const data = await res.json();
 
-    const div = document.getElementById("users");
+    const usersDiv = document.getElementById("users");
 
-    let currentUser = null;
-    let html = "";
+    usersDiv.innerHTML = "";
 
-    data.forEach(row => {
+    data.forEach(user => {
 
-        if (currentUser !== row.user_id) {
-            if (currentUser !== null) html += "<hr>";
+        usersDiv.innerHTML += `
 
-            html += `<h3>${row.name} (${row.email})</h3>`;
-            currentUser = row.user_id;
-        }
+            <button class="userBtn"
 
-        if (row.service_name) {
-            html += `<p>• ${row.service_name} - ₹${row.price}</p>`;
-        } else {
-            html += `<p>No subscriptions</p>`;
-        }
+            onclick="loadUsage(${user.user_id})">
+
+                ${user.name}
+
+            </button>
+        `;
     });
+}
 
-    div.innerHTML = html;
+// LOAD PARTICULAR USER USAGE
+async function loadUsage(userId){
+
+    const res = await fetch(
+
+        API + "/user-usage/" + userId
+
+    );
+
+    const data = await res.json();
+
+    const usageDiv = document.getElementById("usage");
+
+    usageDiv.innerHTML = "";
+
+    data.forEach(item => {
+
+        usageDiv.innerHTML += `
+
+            <div class="card">
+
+                <h2>${item.service_name}</h2>
+
+                <h3>
+
+                    ${item.total_usage} mins used
+
+                </h3>
+
+                <p class="${
+                    item.total_usage < 60
+                    ? 'low'
+                    : 'good'
+                }">
+
+                    ${item.status}
+
+                </p>
+
+            </div>
+        `;
+    });
 }
 
 loadUsers();
+
 </script>
 
 </body>
+
 </html>

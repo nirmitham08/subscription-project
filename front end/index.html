@@ -1,22 +1,347 @@
 <!DOCTYPE html>
 <html>
+
+<head>
+
+    <title>My Subscriptions</title>
+
+    <style>
+
+        body{
+            font-family:Arial;
+            background:#111827;
+            color:white;
+            padding:30px;
+        }
+
+        button{
+            padding:10px 18px;
+            border:none;
+            border-radius:8px;
+            background:#2563eb;
+            color:white;
+            cursor:pointer;
+            margin-top:10px;
+        }
+
+        input{
+            padding:10px;
+            border:none;
+            border-radius:8px;
+            margin-top:10px;
+        }
+
+        .card{
+            background:#1f2937;
+            padding:20px;
+            border-radius:15px;
+            margin-top:20px;
+        }
+
+        .danger{
+            color:red;
+        }
+
+        .safe{
+            color:lightgreen;
+        }
+
+    </style>
+
+</head>
+
 <body>
 
 <h1>My Subscriptions</h1>
 
-<button onclick="window.location.href='add.html'">Add</button>
+<h2 id="welcome"></h2>
+
+<button onclick="window.location.href='add.html'">
+
+➕ Add Subscription
+
+</button>
+
+<a href="usage.html">
+
+<button>
+
+📊 Usage Analytics
+
+</button>
+
+</a>
+
+<a href="admin.html">
+
+<button>
+
+👨‍💼 Admin Portal
+
+</button>
+
+</a>
+
+<button onclick="logout()">
+
+Logout
+
+</button>
 
 <br><br>
 
-<input id="budget" placeholder="Enter Monthly Budget">
-<button onclick="saveBudget()">Save Budget</button>
+<input
+type="number"
+id="budget"
+placeholder="Monthly Budget">
 
-<h3>Total Cost: ₹<span id="total">0</span></h3>
-<h3 id="warning"></h3>
+<button onclick="saveBudget()">
+
+Save Budget
+
+</button>
+
+<div class="card">
+
+<h2>
+
+Total Cost:
+₹<span id="total">0</span>
+
+</h2>
+
+<h2 id="warning"></h2>
+
+</div>
 
 <div id="list"></div>
 
-<script src="script.js"></script>
+<script>
+
+const API = "http://localhost:5000";
+
+const user = JSON.parse(
+localStorage.getItem("user")
+);
+
+if(!user){
+
+window.location.href = "login.html";
+
+}
+
+document.getElementById("welcome")
+.innerHTML =
+"Welcome " + user.name + " 👋";
+
+async function loadSubscriptions(){
+
+const res = await fetch(
+
+API + "/subscriptions/" + user.user_id
+
+);
+
+const data = await res.json();
+
+const list =
+document.getElementById("list");
+
+list.innerHTML = "";
+
+let total = 0;
+
+data.forEach(sub => {
+
+const price =
+sub.custom_price || sub.monthly_cost;
+
+total += Number(price);
+
+list.innerHTML += `
+
+<div class="card">
+
+<h2>${sub.service_name}</h2>
+
+<h3>₹${price}</h3>
+
+<input
+type="number"
+id="price${sub.subscription_id}"
+placeholder="Update Amount">
+
+<button onclick="
+updatePrice(${sub.subscription_id})
+">
+
+Update
+
+</button>
+
+<button onclick="
+deleteSub(${sub.subscription_id})
+">
+
+Delete
+
+</button>
+
+</div>
+
+`;
+
+});
+
+document.getElementById("total")
+.innerHTML = total;
+
+checkBudget(total);
+
+}
+
+async function deleteSub(id){
+
+await fetch(
+
+API + "/subscriptions/" + id,
+
+{
+method:"DELETE"
+}
+
+);
+
+loadSubscriptions();
+
+}
+
+async function updatePrice(id){
+
+const price =
+document.getElementById(
+"price" + id
+).value;
+
+await fetch(
+
+API + "/update-price",
+
+{
+
+method:"PUT",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+subscription_id:id,
+price
+
+})
+
+}
+
+);
+
+loadSubscriptions();
+
+}
+
+async function saveBudget(){
+
+const budget =
+document.getElementById("budget").value;
+
+await fetch(
+
+API + "/budget",
+
+{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+user_id:user.user_id,
+monthly_limit:budget
+
+})
+
+}
+
+);
+
+alert("Budget Saved");
+
+}
+
+async function checkBudget(total){
+
+const res = await fetch(
+
+API + "/budget/" + user.user_id
+
+);
+
+const data = await res.json();
+
+if(data.length > 0){
+
+const limit =
+data[0].monthly_limit;
+
+if(total > limit){
+
+document.getElementById(
+"warning"
+).innerHTML =
+
+"⚠ Budget Exceeded";
+
+document.getElementById(
+"warning"
+).className = "danger";
+
+}
+
+else{
+
+document.getElementById(
+"warning"
+).innerHTML =
+
+"✅ Within Budget";
+
+document.getElementById(
+"warning"
+).className = "safe";
+
+}
+
+}
+
+}
+
+function logout(){
+
+localStorage.removeItem("user");
+
+window.location.href =
+"login.html";
+
+}
+
+loadSubscriptions();
+
+</script>
 
 </body>
+
 </html>

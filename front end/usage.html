@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Usage Analytics</title>
+
+<style>
+
+body{
+background:#111827;
+color:white;
+font-family:Arial;
+padding:30px;
+}
+
+.card{
+background:#1f2937;
+padding:20px;
+border-radius:15px;
+margin-top:20px;
+}
+
+.low{
+color:red;
+}
+
+.good{
+color:lightgreen;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>📊 Usage Analytics</h1>
+
+<div id="usage"></div>
+
+<script>
+
+const API = "http://localhost:5000";
+
+const user = JSON.parse(
+localStorage.getItem("user")
+);
+
+async function loadUsage(){
+
+const res = await fetch(
+
+API + "/user-usage/" + user.user_id
+
+);
+
+const data = await res.json();
+
+const div =
+document.getElementById("usage");
+
+div.innerHTML = "";
+
+data.forEach(item => {
+
+div.innerHTML += `
+
+<div class="card">
+
+<h2>${item.service_name}</h2>
+
+<h3>
+
+${item.total_usage} mins used
+
+</h3>
+
+<p class="${
+item.total_usage < 60
+? 'low'
+: 'good'
+}">
+
+${item.status}
+
+</p>
+
+</div>
+
+`;
+
+});
+
+}
+
+loadUsage();
+
+</script>
+
+</body>
+
+</html>
