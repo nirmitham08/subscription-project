@@ -3,33 +3,9 @@
 
 <head>
 
-<title>Usage Analytics</title>
+    <title>Usage Analytics</title>
 
-<style>
-
-body{
-background:#111827;
-color:white;
-font-family:Arial;
-padding:30px;
-}
-
-.card{
-background:#1f2937;
-padding:20px;
-border-radius:15px;
-margin-top:20px;
-}
-
-.low{
-color:red;
-}
-
-.good{
-color:lightgreen;
-}
-
-</style>
+    <link rel="stylesheet" href="style.css">
 
 </head>
 
@@ -37,60 +13,92 @@ color:lightgreen;
 
 <h1>📊 Usage Analytics</h1>
 
-<div id="usage"></div>
+<div id="usage" class="grid"></div>
 
 <script>
 
 const API = "http://localhost:5000";
 
+// GET LOGGED USER
 const user = JSON.parse(
-localStorage.getItem("user")
+    localStorage.getItem("user")
 );
 
+// IF NO LOGIN
+if(!user){
+
+    window.location.href =
+    "login.html";
+
+}
+
+// LOAD USAGE
 async function loadUsage(){
 
-const res = await fetch(
+    const res = await fetch(
 
-API + "/user-usage/" + user.user_id
+        API + "/user-usage/" + user.user_id
 
-);
+    );
 
-const data = await res.json();
+    const data = await res.json();
 
-const div =
-document.getElementById("usage");
+    const usage =
+    document.getElementById("usage");
 
-div.innerHTML = "";
+    usage.innerHTML = "";
 
-data.forEach(item => {
+    // IF EMPTY
+    if(data.length === 0){
 
-div.innerHTML += `
+        usage.innerHTML = `
 
-<div class="card">
+            <div class="card">
 
-<h2>${item.service_name}</h2>
+                <h2>
 
-<h3>
+                    No Usage Data Found
 
-${item.total_usage} mins used
+                </h2>
 
-</h3>
+            </div>
 
-<p class="${
-item.total_usage < 60
-? 'low'
-: 'good'
-}">
+        `;
 
-${item.status}
+        return;
+    }
 
-</p>
+    // SHOW DATA
+    data.forEach(item => {
 
-</div>
+        usage.innerHTML += `
 
-`;
+            <div class="card">
 
-});
+                <h2>
+
+                    ${item.service_name}
+
+                </h2>
+
+                <h3>
+
+                    ${item.total_usage}
+                    mins used
+
+                </h3>
+
+                <h3>
+
+                    ${item.status}
+
+                </h3>
+
+            </div>
+
+        `;
+
+    });
 
 }
 

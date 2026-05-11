@@ -5,43 +5,7 @@
 
     <title>Admin Portal</title>
 
-    <style>
-
-        body{
-            font-family: Arial;
-            background:#111827;
-            color:white;
-            padding:20px;
-        }
-
-        .userBtn{
-
-            padding:12px;
-            margin:10px;
-            border:none;
-            border-radius:10px;
-            background:#2563eb;
-            color:white;
-            cursor:pointer;
-        }
-
-        .card{
-
-            background:#1f2937;
-            padding:20px;
-            margin-top:15px;
-            border-radius:12px;
-        }
-
-        .low{
-            color:red;
-        }
-
-        .good{
-            color:lightgreen;
-        }
-
-    </style>
+    <link rel="stylesheet" href="style.css">
 
 </head>
 
@@ -53,84 +17,185 @@
 
 <div id="users"></div>
 
+<br>
+
+<div id="userinfo"></div>
+
 <hr>
 
 <h2>User Usage Analytics</h2>
 
-<div id="usage"></div>
+<div id="analytics" class="grid"></div>
 
 <script>
 
 const API = "http://localhost:5000";
 
-// LOAD USERS
+// LOAD ALL USERS
 async function loadUsers(){
 
-    const res = await fetch(API + "/all-users");
+    const res = await fetch(
 
-    const data = await res.json();
+        API + "/all-users"
 
-    const usersDiv = document.getElementById("users");
+    );
+
+    const users = await res.json();
+
+    const usersDiv =
+    document.getElementById("users");
 
     usersDiv.innerHTML = "";
 
-    data.forEach(user => {
+    users.forEach(user => {
 
         usersDiv.innerHTML += `
 
-            <button class="userBtn"
-
-            onclick="loadUsage(${user.user_id})">
+            <button onclick="
+            loadUsage(${user.user_id})
+            ">
 
                 ${user.name}
 
             </button>
+
         `;
+
     });
+
 }
 
-// LOAD PARTICULAR USER USAGE
-async function loadUsage(userId){
+// LOAD USER INFO + USAGE
+async function loadUsage(user_id){
 
+    // USER INFO
+    const infoRes = await fetch(
+
+        API + "/user-info/" + user_id
+
+    );
+
+    const infoData =
+    await infoRes.json();
+
+    const user =
+    infoData[0];
+
+    document.getElementById(
+        "userinfo"
+    ).innerHTML = `
+
+        <div class="card">
+
+            <h2>
+
+                👤 ${user.name}
+
+            </h2>
+
+            <h3>
+
+                📧 ${user.email}
+
+            </h3>
+
+            <h3>
+
+                💰 Budget:
+                ₹${user.budget}
+
+            </h3>
+
+            <h3>
+
+                📦 Subscriptions:
+                ${user.total_subscriptions}
+
+            </h3>
+
+            <h3>
+
+                💸 Spending:
+                ₹${user.total_spending}
+
+            </h3>
+
+            <h3>
+
+                ⏱ Total Usage:
+                ${user.total_usage} mins
+
+            </h3>
+
+        </div>
+
+    `;
+
+    // USAGE ANALYTICS
     const res = await fetch(
 
-        API + "/user-usage/" + userId
+        API + "/user-usage/" + user_id
 
     );
 
     const data = await res.json();
 
-    const usageDiv = document.getElementById("usage");
+    const analytics =
+    document.getElementById("analytics");
 
-    usageDiv.innerHTML = "";
+    analytics.innerHTML = "";
 
-    data.forEach(item => {
+    if(data.length === 0){
 
-        usageDiv.innerHTML += `
+        analytics.innerHTML = `
 
             <div class="card">
 
-                <h2>${item.service_name}</h2>
+                <h2>
+
+                    No Usage Data Found
+
+                </h2>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+    data.forEach(item => {
+
+        analytics.innerHTML += `
+
+            <div class="card">
+
+                <h2>
+
+                    ${item.service_name}
+
+                </h2>
 
                 <h3>
 
-                    ${item.total_usage} mins used
+                    ⏱ ${item.total_usage}
+                    mins used
 
                 </h3>
 
-                <p class="${
-                    item.total_usage < 60
-                    ? 'low'
-                    : 'good'
-                }">
+                <h3>
 
                     ${item.status}
 
-                </p>
+                </h3>
 
             </div>
+
         `;
+
     });
+
 }
 
 loadUsers();

@@ -5,336 +5,329 @@
 
     <title>My Subscriptions</title>
 
-    <style>
-
-        body{
-            font-family:Arial;
-            background:#111827;
-            color:white;
-            padding:30px;
-        }
-
-        button{
-            padding:10px 18px;
-            border:none;
-            border-radius:8px;
-            background:#2563eb;
-            color:white;
-            cursor:pointer;
-            margin-top:10px;
-        }
-
-        input{
-            padding:10px;
-            border:none;
-            border-radius:8px;
-            margin-top:10px;
-        }
-
-        .card{
-            background:#1f2937;
-            padding:20px;
-            border-radius:15px;
-            margin-top:20px;
-        }
-
-        .danger{
-            color:red;
-        }
-
-        .safe{
-            color:lightgreen;
-        }
-
-    </style>
+    <link rel="stylesheet" href="style.css">
 
 </head>
 
 <body>
 
-<h1>My Subscriptions</h1>
+<div class="topbar">
 
-<h2 id="welcome"></h2>
+    <div>
+
+        <h1>My Subscriptions</h1>
+
+        <h2 id="welcome"></h2>
+
+    </div>
+
+    <button onclick="logout()">
+
+        Logout
+
+    </button>
+
+</div>
+
+<hr>
 
 <button onclick="window.location.href='add.html'">
 
-➕ Add Subscription
+    ➕ Add Subscription
 
 </button>
 
 <a href="usage.html">
 
-<button>
+    <button>
 
-📊 Usage Analytics
+        📊 Usage Analytics
 
-</button>
+    </button>
 
 </a>
 
 <a href="admin.html">
 
-<button>
+    <button>
 
-👨‍💼 Admin Portal
+        👨‍💼 Admin Portal
 
-</button>
+    </button>
 
 </a>
-
-<button onclick="logout()">
-
-Logout
-
-</button>
 
 <br><br>
 
 <input
 type="number"
 id="budget"
-placeholder="Monthly Budget">
+placeholder="Enter Monthly Budget">
 
 <button onclick="saveBudget()">
 
-Save Budget
+    Save Budget
 
 </button>
 
 <div class="card">
 
-<h2>
+    <h2>
 
-Total Cost:
-₹<span id="total">0</span>
+        Total Monthly Cost:
+        ₹<span id="total">0</span>
 
-</h2>
+    </h2>
 
-<h2 id="warning"></h2>
+    <h2 id="warning"></h2>
 
 </div>
 
-<div id="list"></div>
+<div id="list" class="grid"></div>
 
 <script>
 
 const API = "http://localhost:5000";
 
 const user = JSON.parse(
-localStorage.getItem("user")
+    localStorage.getItem("user")
 );
 
+// LOGIN CHECK
 if(!user){
 
-window.location.href = "login.html";
+    window.location.href =
+    "login.html";
 
 }
 
+// SHOW USER NAME
 document.getElementById("welcome")
 .innerHTML =
-"Welcome " + user.name + " 👋";
+"Welcome, " + user.name + " 👋";
 
+// LOAD SUBSCRIPTIONS
 async function loadSubscriptions(){
 
-const res = await fetch(
+    const res = await fetch(
 
-API + "/subscriptions/" + user.user_id
+        API + "/subscriptions/" + user.user_id
 
-);
+    );
 
-const data = await res.json();
+    const data = await res.json();
 
-const list =
-document.getElementById("list");
+    const list =
+    document.getElementById("list");
 
-list.innerHTML = "";
+    list.innerHTML = "";
 
-let total = 0;
+    let total = 0;
 
-data.forEach(sub => {
+    data.forEach(sub => {
 
-const price =
-sub.custom_price || sub.monthly_cost;
+        const price =
+        sub.custom_price ||
+        sub.monthly_cost;
 
-total += Number(price);
+        total += Number(price);
 
-list.innerHTML += `
+        list.innerHTML += `
 
-<div class="card">
+            <div class="card">
 
-<h2>${sub.service_name}</h2>
+                <h2>
 
-<h3>₹${price}</h3>
+                    ${sub.service_name}
 
-<input
-type="number"
-id="price${sub.subscription_id}"
-placeholder="Update Amount">
+                </h2>
 
-<button onclick="
-updatePrice(${sub.subscription_id})
-">
+                <h3>
 
-Update
+                    ₹${price}
 
-</button>
+                </h3>
 
-<button onclick="
-deleteSub(${sub.subscription_id})
-">
+                <input
+                type="number"
 
-Delete
+                id="price${sub.subscription_id}"
 
-</button>
+                placeholder="Update Amount">
 
-</div>
+                <br>
 
-`;
+                <button onclick="
+                updatePrice(
+                ${sub.subscription_id}
+                )">
 
-});
+                    Update
 
-document.getElementById("total")
-.innerHTML = total;
+                </button>
 
-checkBudget(total);
+                <button onclick="
+                deleteSub(
+                ${sub.subscription_id}
+                )">
+
+                    Delete
+
+                </button>
+
+            </div>
+
+        `;
+    });
+
+    document.getElementById("total")
+    .innerHTML = total;
+
+    checkBudget(total);
 
 }
 
+// DELETE SUBSCRIPTION
 async function deleteSub(id){
 
-await fetch(
+    await fetch(
 
-API + "/subscriptions/" + id,
+        API + "/subscriptions/" + id,
 
-{
-method:"DELETE"
+        {
+
+            method:"DELETE"
+
+        }
+    );
+
+    loadSubscriptions();
+
 }
 
-);
-
-loadSubscriptions();
-
-}
-
+// UPDATE PRICE
 async function updatePrice(id){
 
-const price =
-document.getElementById(
-"price" + id
-).value;
+    const price = document.getElementById(
 
-await fetch(
+        "price" + id
 
-API + "/update-price",
+    ).value;
 
-{
+    await fetch(
 
-method:"PUT",
+        API + "/update-price",
 
-headers:{
-"Content-Type":"application/json"
-},
+        {
 
-body:JSON.stringify({
+            method:"PUT",
 
-subscription_id:id,
-price
+            headers:{
+                "Content-Type":"application/json"
+            },
 
-})
+            body:JSON.stringify({
+
+                subscription_id:id,
+                price
+
+            })
+
+        }
+    );
+
+    loadSubscriptions();
 
 }
 
-);
-
-loadSubscriptions();
-
-}
-
+// SAVE BUDGET
 async function saveBudget(){
 
-const budget =
-document.getElementById("budget").value;
+    const budget =
+    document.getElementById("budget").value;
 
-await fetch(
+    await fetch(
 
-API + "/budget",
+        API + "/budget",
 
-{
+        {
 
-method:"POST",
+            method:"POST",
 
-headers:{
-"Content-Type":"application/json"
-},
+            headers:{
+                "Content-Type":"application/json"
+            },
 
-body:JSON.stringify({
+            body:JSON.stringify({
 
-user_id:user.user_id,
-monthly_limit:budget
+                user_id:user.user_id,
 
-})
+                monthly_limit:budget
+
+            })
+
+        }
+    );
+
+    alert("Budget Saved");
 
 }
 
-);
-
-alert("Budget Saved");
-
-}
-
+// CHECK BUDGET
 async function checkBudget(total){
 
-const res = await fetch(
+    const res = await fetch(
 
-API + "/budget/" + user.user_id
+        API + "/budget/" + user.user_id
 
-);
+    );
 
-const data = await res.json();
+    const data = await res.json();
 
-if(data.length > 0){
+    if(data.length > 0){
 
-const limit =
-data[0].monthly_limit;
+        const limit =
+        data[0].monthly_limit;
 
-if(total > limit){
+        if(total > limit){
 
-document.getElementById(
-"warning"
-).innerHTML =
+            document.getElementById(
+                "warning"
+            ).innerHTML =
 
-"⚠ Budget Exceeded";
+            "⚠ Budget Exceeded";
 
-document.getElementById(
-"warning"
-).className = "danger";
+            document.getElementById(
+                "warning"
+            ).className = "warning";
+
+        }
+
+        else{
+
+            document.getElementById(
+                "warning"
+            ).innerHTML =
+
+            "✅ Within Budget";
+
+            document.getElementById(
+                "warning"
+            ).className = "success";
+
+        }
+
+    }
 
 }
 
-else{
-
-document.getElementById(
-"warning"
-).innerHTML =
-
-"✅ Within Budget";
-
-document.getElementById(
-"warning"
-).className = "safe";
-
-}
-
-}
-
-}
-
+// LOGOUT
 function logout(){
 
-localStorage.removeItem("user");
+    localStorage.removeItem("user");
 
-window.location.href =
-"login.html";
+    window.location.href =
+    "login.html";
 
 }
 

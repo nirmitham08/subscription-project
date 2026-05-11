@@ -1,41 +1,153 @@
-body {
-    font-family: Arial;
-    margin: 20px;
+body{
+
+    margin:0;
+    padding:30px;
+
+    background:#0f172a;
+
+    color:white;
+
+    font-family:Arial;
+
 }
 
-button {
-    margin-left: 10px;
+h1,h2,h3{
+
+    color:white;
+
 }
 
-/* 🔥 Budget UI */
-.budget {
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 8px;
-    font-weight: bold;
+.card{
+
+    background:#1e293b;
+
+    padding:20px;
+
+    border-radius:16px;
+
+    margin-top:20px;
+
+    box-shadow:0 4px 20px rgba(0,0,0,0.3);
+
 }
 
-.over {
-    background-color: #ffcccc;
-    color: red;
+button{
+
+    background:#2563eb;
+
+    color:white;
+
+    border:none;
+
+    padding:12px 18px;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    transition:0.3s;
+
+    margin-top:10px;
+
 }
 
-.safe {
-    background-color: #ccffcc;
-    color: green;
+button:hover{
+
+    background:#1d4ed8;
+
+    transform:scale(1.03);
+
 }
 
-/* 🔥 Recommendation cards */
-.card {
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 10px;
+input,select{
+
+    width:300px;
+
+    padding:12px;
+
+    border:none;
+
+    border-radius:10px;
+
+    margin-top:10px;
+
+    background:#334155;
+
+    color:white;
+
 }
 
-.cancel {
-    background-color: #f8d7da;
+input::placeholder{
+
+    color:#cbd5e1;
+
 }
 
-.keep {
-    background-color: #d4edda;
+a{
+
+    color:#60a5fa;
+
+    text-decoration:none;
+
+}
+
+.warning{
+
+    color:#ef4444;
+
+    font-weight:bold;
+
+}
+
+.success{
+
+    color:#22c55e;
+
+    font-weight:bold;
+
+}
+
+.topbar{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.grid{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(300px,1fr));
+
+    gap:20px;
+}
+
+.center{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    height:100vh;
+}
+
+.login-box{
+
+    background:#1e293b;
+
+    padding:40px;
+
+    border-radius:20px;
+
+    width:350px;
+
+    box-shadow:0 4px 30px rgba(0,0,0,0.4);
+
 }

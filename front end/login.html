@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <link rel="stylesheet" href="style.css">
 
     <title>Login</title>
 
@@ -47,72 +48,27 @@
 
 </head>
 
-<body>
+<body class="center">
 
-<div class="box">
+<div class="login-box">
 
-    <h1>Login</h1>
+<h1>Subscription Manager</h1>
 
-    <input type="text"
-    id="name"
-    placeholder="Name">
+<input type="text"
+id="name"
+placeholder="Enter Name">
 
-    <input type="email"
-    id="email"
-    placeholder="Email">
+<input type="email"
+id="email"
+placeholder="Enter Email">
 
-    <button onclick="login()">
+<button onclick="login()">
 
-        Continue
+Login
 
-    </button>
+</button>
 
 </div>
-
-<script>
-
-const API = "http://localhost:5000";
-
-async function login(){
-
-    const name =
-    document.getElementById("name").value;
-
-    const email =
-    document.getElementById("email").value;
-
-    const res = await fetch(
-
-        API + "/login",
-
-        {
-
-            method:"POST",
-
-            headers:{
-                "Content-Type":"application/json"
-            },
-
-            body:JSON.stringify({
-                name,
-                email
-            })
-
-        }
-    );
-
-    const data = await res.json();
-
-    localStorage.setItem(
-        "user",
-        JSON.stringify(data)
-    );
-
-    window.location.href = "index.html";
-
-}
-
-</script>
 
 </body>
 

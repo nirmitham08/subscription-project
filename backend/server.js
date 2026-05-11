@@ -15,12 +15,18 @@ const db = mysql.createConnection({
     database: "subscriptiondb"
 });
 
-db.connect(err => {
+db.connect((err) => {
 
-    if (err) {
+    if(err){
+
         console.log(err);
-    } else {
+
+    }
+
+    else{
+
         console.log("✅ DB Connected");
+
     }
 
 });
@@ -38,14 +44,20 @@ app.post("/login", (req, res) => {
 
         (err, result) => {
 
-            if (err) return res.send(err);
+            if(err){
 
-            if (result.length > 0) {
+                return res.send(err);
+
+            }
+
+            // USER EXISTS
+            if(result.length > 0){
 
                 return res.json(result[0]);
 
             }
 
+            // CREATE USER
             db.query(
 
                 "INSERT INTO user (name,email) VALUES (?,?)",
@@ -54,18 +66,26 @@ app.post("/login", (req, res) => {
 
                 (err, data) => {
 
-                    if (err) return res.send(err);
+                    if(err){
+
+                        return res.send(err);
+
+                    }
 
                     res.json({
-                        user_id: data.insertId,
+
+                        user_id:data.insertId,
                         name,
                         email
+
                     });
 
                 }
+
             );
 
         }
+
     );
 
 });
@@ -79,47 +99,64 @@ app.get("/services", (req, res) => {
 
         (err, result) => {
 
-            if (err) return res.send(err);
+            if(err){
+
+                return res.send(err);
+
+            }
 
             res.json(result);
 
         }
+
     );
 
 });
 
-// ADD SUBSCRIPTION (NO DUPLICATES)
+// ADD SUBSCRIPTION
 app.post("/subscriptions", (req, res) => {
 
     const { user_id, service_id } = req.body;
 
     const sql = `
 
-        INSERT INTO subscription (user_id, service_id)
+        INSERT INTO subscription
+        (user_id, service_id)
 
         SELECT ?, ?
 
         WHERE NOT EXISTS (
 
-            SELECT 1 FROM subscription
+            SELECT 1
+            FROM subscription
 
             WHERE user_id = ?
             AND service_id = ?
 
         )
+
     `;
 
     db.query(
 
         sql,
 
-        [user_id, service_id, user_id, service_id],
+        [
+            user_id,
+            service_id,
+            user_id,
+            service_id
+        ],
 
         (err, result) => {
 
-            if (err) return res.send(err);
+            if(err){
 
-            if (result.affectedRows === 0) {
+                return res.send(err);
+
+            }
+
+            if(result.affectedRows === 0){
 
                 return res.send("Already added");
 
@@ -128,6 +165,7 @@ app.post("/subscriptions", (req, res) => {
             res.send("Added");
 
         }
+
     );
 
 });
@@ -139,23 +177,31 @@ app.get("/subscriptions/:user_id", (req, res) => {
 
     const sql = `
 
-        SELECT 
+        SELECT
+
             s.subscription_id,
             s.custom_price,
+
             sv.service_name,
             sv.monthly_cost
 
         FROM subscription s
 
         JOIN service sv
-        ON s.service_id = sv.service_id
+        ON s.service_id =
+        sv.service_id
 
         WHERE s.user_id = ?
+
     `;
 
     db.query(sql, [user_id], (err, result) => {
 
-        if (err) return res.send(err);
+        if(err){
+
+            return res.send(err);
+
+        }
 
         res.json(result);
 
@@ -174,16 +220,21 @@ app.delete("/subscriptions/:id", (req, res) => {
 
         (err) => {
 
-            if (err) return res.send(err);
+            if(err){
+
+                return res.send(err);
+
+            }
 
             res.send("Deleted");
 
         }
+
     );
 
 });
 
-// UPDATE SUBSCRIPTION PRICE
+// UPDATE PRICE
 app.put("/update-price", (req, res) => {
 
     const { subscription_id, price } = req.body;
@@ -196,11 +247,16 @@ app.put("/update-price", (req, res) => {
 
         (err) => {
 
-            if (err) return res.send(err);
+            if(err){
+
+                return res.send(err);
+
+            }
 
             res.send("Updated");
 
         }
+
     );
 
 });
@@ -218,11 +274,16 @@ app.post("/budget", (req, res) => {
 
         (err) => {
 
-            if (err) return res.send(err);
+            if(err){
+
+                return res.send(err);
+
+            }
 
             res.send("Budget Saved");
 
         }
+
     );
 
 });
@@ -238,11 +299,16 @@ app.get("/budget/:user_id", (req, res) => {
 
         (err, result) => {
 
-            if (err) return res.send(err);
+            if(err){
+
+                return res.send(err);
+
+            }
 
             res.json(result);
 
         }
+
     );
 
 });
@@ -256,32 +322,118 @@ app.get("/all-users", (req, res) => {
 
         (err, result) => {
 
-            if (err) return res.send(err);
+            if(err){
+
+                return res.send(err);
+
+            }
 
             res.json(result);
 
         }
+
     );
 
 });
 
-// GET USER-WISE USAGE ANALYTICS
+// USER INFO
+app.get("/user-info/:id", (req, res) => {
+
+    const user_id = req.params.id;
+
+    const sql = `
+
+        SELECT
+
+            user.user_id,
+            user.name,
+            user.email,
+
+            MAX(
+                IFNULL(
+                    user_budget.monthly_limit,
+                    0
+                )
+            ) AS budget,
+
+            COUNT(
+                DISTINCT subscription.subscription_id
+            ) AS total_subscriptions,
+
+            IFNULL(
+                SUM(
+                    subscription.custom_price
+                ),
+                0
+            ) AS total_spending,
+
+            IFNULL(
+                SUM(
+                    usage_logs.usage_minutes
+                ),
+                0
+            ) AS total_usage
+
+        FROM user
+
+        LEFT JOIN user_budget
+        ON user.user_id =
+        user_budget.user_id
+
+        LEFT JOIN subscription
+        ON user.user_id =
+        subscription.user_id
+
+        LEFT JOIN usage_logs
+        ON subscription.subscription_id =
+        usage_logs.subscription_id
+
+        WHERE user.user_id = ?
+
+        GROUP BY
+        user.user_id,
+        user.name,
+        user.email
+
+    `;
+
+    db.query(sql, [user_id], (err, result) => {
+
+        if(err){
+
+            console.log(err);
+
+            return res.send(err);
+
+        }
+
+        res.json(result);
+
+    });
+
+});
+
+// USER USAGE ANALYTICS
 app.get("/user-usage/:userId", (req, res) => {
 
     const userId = req.params.userId;
 
     const sql = `
 
-        SELECT 
+        SELECT
 
-            u.name,
             sv.service_name,
 
-            SUM(ul.usage_minutes) AS total_usage,
+            SUM(
+                ul.usage_minutes
+            ) AS total_usage,
 
             CASE
 
-                WHEN SUM(ul.usage_minutes) < 60
+                WHEN SUM(
+                    ul.usage_minutes
+                ) < 60
+
                 THEN '⚠ Low Usage'
 
                 ELSE '✅ Active Usage'
@@ -291,22 +443,26 @@ app.get("/user-usage/:userId", (req, res) => {
         FROM usage_logs ul
 
         JOIN subscription s
-        ON ul.subscription_id = s.subscription_id
+        ON ul.subscription_id =
+        s.subscription_id
 
         JOIN service sv
-        ON s.service_id = sv.service_id
-
-        JOIN user u
-        ON ul.user_id = u.user_id
+        ON s.service_id =
+        sv.service_id
 
         WHERE ul.user_id = ?
 
         GROUP BY sv.service_name
+
     `;
 
     db.query(sql, [userId], (err, result) => {
 
-        if (err) return res.send(err);
+        if(err){
+
+            return res.send(err);
+
+        }
 
         res.json(result);
 
@@ -314,7 +470,7 @@ app.get("/user-usage/:userId", (req, res) => {
 
 });
 
-// SERVER START
+// SERVER
 app.listen(5000, () => {
 
     console.log("🚀 Server running on port 5000");
